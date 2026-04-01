@@ -1,0 +1,1 @@
+A plugin to allow other apps and devices to send shot data to OpenGolfSim over the OpenConnect v1 API.
