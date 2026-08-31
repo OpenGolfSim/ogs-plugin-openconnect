@@ -1,6 +1,6 @@
 {
   "name": "ogs-plugin-openconnect",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Creates a TCP server that emulates the OpenConnect v1 API",
   "plugin": {
     "title": "OpenConnect v1",

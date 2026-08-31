@@ -6,12 +6,43 @@ const PORT = 921;
 // Keep track of the launch monitor status to show in the OpenGolfSim UI
 const device = { isConnected: false, isReady: false };
 
+let currentClub = null;
+let activeSocket = null;
+
+function sendPlayerInformation() {
+  const response = {
+    Code: 201,
+    Message: 'Player Information',
+    Player: {
+      Handed: currentClub?.handedness || 'RH',
+      Club: currentClub?.id || 'DR'
+    }
+  };
+  if (activeSocket) {
+    try {
+      activeSocket.write(JSON.stringify(response) + '\n');
+    } catch (error) {
+      logging.error('Unable to write to OpenConnect socket');
+    }
+  }
+}
+
+shotData.on('club', (club) => {
+  logging.info(`Club has changed in OGS: ${club.id}`);
+  currentClub = club;
+  sendPlayerInformation();
+});
+
 const server = network.createServer((socket) => {
   logging.info('Launch monitor connected via OpenConnect V1');
   
   device.isConnected = true;
   device.isReady = true;
   shotData.updateDeviceStatus(device);
+  activeSocket = socket;
+
+  // send player update on connect
+  sendPlayerInformation();
 
   socket.on('data', (data) => {
     try {
@@ -67,6 +98,7 @@ const server = network.createServer((socket) => {
     logging.info('Launch monitor socket closed');
     device.isConnected = false;
     device.isReady = false;
+    activeSocket = null;
     shotData.updateDeviceStatus(device);
   });
 
@@ -74,6 +106,7 @@ const server = network.createServer((socket) => {
     logging.info('Launch monitor disconnected');
     device.isConnected = false;
     device.isReady = false;
+    activeSocket = null;
     shotData.updateDeviceStatus(device);
   });
 
